@@ -160,11 +160,12 @@ class GeoIP
         // Check if the ip is not local or empty
         if ($this->isValid($ip)) {
             try {
-                if($lookupType === 'country'){
+                if ($lookupType == 'country') {
                     $location = $this->getService()->country($ip);
+                }else {
+                    // Find location
+                    $location = $this->getService()->locate($ip);
                 }
-                // Find location
-                $location = $this->getService()->locate($ip);
 
                 // Set currency if not already set by the service
                 if (!$location->currency) {
