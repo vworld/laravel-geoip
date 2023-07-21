@@ -27,6 +27,18 @@ class MaxMindWebService extends AbstractService
         );
     }
 
+    public function country($ip)
+    {
+        $record = $this->client->country($ip);
+
+        return $this->hydrate([
+            'ip'          => $ip,
+            'iso_code'    => $record->country->isoCode,
+            'country'     => $record->country->name,
+            'continent'   => $record->continent->code,
+        ]);
+    }
+
     /**
      * {@inheritdoc}
      */
@@ -35,17 +47,17 @@ class MaxMindWebService extends AbstractService
         $record = $this->client->city($ip);
 
         return $this->hydrate([
-            'ip' => $ip,
-            'iso_code' => $record->country->isoCode,
-            'country' => $record->country->name,
-            'city' => $record->city->name,
-            'state' => $record->mostSpecificSubdivision->isoCode,
-            'state_name' => $record->mostSpecificSubdivision->name,
+            'ip'          => $ip,
+            'iso_code'    => $record->country->isoCode,
+            'country'     => $record->country->name,
+            'city'        => $record->city->name,
+            'state'       => $record->mostSpecificSubdivision->isoCode,
+            'state_name'  => $record->mostSpecificSubdivision->name,
             'postal_code' => $record->postal->code,
-            'lat' => $record->location->latitude,
-            'lon' => $record->location->longitude,
-            'timezone' => $record->location->timeZone,
-            'continent' => $record->continent->code,
+            'lat'         => $record->location->latitude,
+            'lon'         => $record->location->longitude,
+            'timezone'    => $record->location->timeZone,
+            'continent'   => $record->continent->code,
         ]);
     }
 }

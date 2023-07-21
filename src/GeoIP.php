@@ -58,26 +58,26 @@ class GeoIP
      * @var array
      */
     protected $default_location = [
-        'ip' => '127.0.0.0',
-        'iso_code' => 'US',
-        'country' => 'United States',
-        'city' => 'New Haven',
-        'state' => 'CT',
-        'state_name' => 'Connecticut',
+        'ip'          => '127.0.0.0',
+        'iso_code'    => 'US',
+        'country'     => 'United States',
+        'city'        => 'New Haven',
+        'state'       => 'CT',
+        'state_name'  => 'Connecticut',
         'postal_code' => '06510',
-        'lat' => 41.31,
-        'lon' => -72.92,
-        'timezone' => 'America/New_York',
-        'continent' => 'NA',
-        'currency' => 'USD',
-        'default' => true,
-        'cached' => false,
+        'lat'         => 41.31,
+        'lon'         => -72.92,
+        'timezone'    => 'America/New_York',
+        'continent'   => 'NA',
+        'currency'    => 'USD',
+        'default'     => true,
+        'cached'      => false,
     ];
 
     /**
      * Create a new GeoIP instance.
      *
-     * @param array        $config
+     * @param array $config
      * @param CacheManager $cache
      */
     public function __construct(array $config, CacheManager $cache)
@@ -122,15 +122,30 @@ class GeoIP
         return $this->location;
     }
 
+    public function getCountry($ip = null)
+    {
+        // Get country data
+
+        $this->location = $this->find($ip, "country");
+
+        // Should cache location
+        if ($this->shouldCache($this->location, $ip)) {
+            $this->getCache()->set($ip, $this->location);
+        }
+
+        return $this->location;
+    }
+
     /**
      * Find location from IP.
      *
      * @param string $ip
+     * @param ('city'|'country') $lookupType
      *
      * @return \Torann\GeoIP\Location
      * @throws \Exception
      */
-    private function find($ip = null)
+    private function find($ip = null, $lookupType = "city")
     {
         // If IP not set, user remote IP
         $ip = $ip ?: $this->remote_ip;
@@ -145,11 +160,14 @@ class GeoIP
         // Check if the ip is not local or empty
         if ($this->isValid($ip)) {
             try {
+                if($lookupType === 'country'){
+                    $location = $this->getService()->country($ip);
+                }
                 // Find location
                 $location = $this->getService()->locate($ip);
 
                 // Set currency if not already set by the service
-                if (! $location->currency) {
+                if (!$location->currency) {
                     $location->currency = $this->getCurrency($location->iso_code);
                 }
 
@@ -262,8 +280,8 @@ class GeoIP
      */
     private function isValid($ip)
     {
-        if (! filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)
-            && ! filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6 | FILTER_FLAG_NO_PRIV_RANGE)
+        if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)
+            && !filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6 | FILTER_FLAG_NO_PRIV_RANGE)
         ) {
             return false;
         }
@@ -274,7 +292,7 @@ class GeoIP
     /**
      * Determine if the location should be cached.
      *
-     * @param Location    $location
+     * @param Location $location
      * @param string|null $ip
      *
      * @return bool
@@ -298,7 +316,7 @@ class GeoIP
      * Get configuration value.
      *
      * @param string $key
-     * @param mixed  $default
+     * @param mixed $default
      *
      * @return mixed
      */

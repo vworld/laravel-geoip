@@ -21,6 +21,8 @@ interface ServiceInterface
      */
     public function locate($ip);
 
+    public function country($ip);
+
     /**
      * Create a location instance from the provided attributes.
      *
